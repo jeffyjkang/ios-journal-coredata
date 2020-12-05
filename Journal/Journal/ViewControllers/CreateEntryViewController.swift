@@ -11,6 +11,7 @@ class CreateEntryViewController: UIViewController {
 
     @IBOutlet weak var entryTitleTextField: UITextField!
     @IBOutlet weak var entryBodyTextView: UITextView!
+    @IBOutlet weak var moodSegmentedControl: UISegmentedControl!
     
     @IBAction func cancel(_ sender: UIBarButtonItem) {
         navigationController?.dismiss(animated: true, completion: nil)
@@ -18,7 +19,9 @@ class CreateEntryViewController: UIViewController {
     @IBAction func save(_ sender: UIBarButtonItem) {
         guard let title = entryTitleTextField.text, !title.isEmpty else { return }
         let bodyText = entryBodyTextView.text
-        Entry(title: title, bodyText: bodyText)
+        let moodIndex = moodSegmentedControl.selectedSegmentIndex
+        let mood = Mood.allCases[moodIndex]
+        Entry(title: title, bodyText: bodyText, mood: mood)
         do {
             try CoreDataStack.shared.mainContext.save()
             navigationController?.dismiss(animated: true, completion: nil)
@@ -30,6 +33,9 @@ class CreateEntryViewController: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view.
+        moodSegmentedControl.setTitle("🙂", forSegmentAt: 0)
+        moodSegmentedControl.setTitle("😐", forSegmentAt: 1)
+        moodSegmentedControl.setTitle("☹️", forSegmentAt: 2)
         entryTitleTextField.becomeFirstResponder()
     }
 

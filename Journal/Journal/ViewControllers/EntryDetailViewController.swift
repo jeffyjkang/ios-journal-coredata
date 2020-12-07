@@ -9,6 +9,7 @@ import UIKit
 
 class EntryDetailViewController: UIViewController {
 
+    var entryController: EntryController?
     var entry: Entry?
     var wasEdited = false
     
@@ -41,6 +42,8 @@ class EntryDetailViewController: UIViewController {
             entry.title = title
             entry.mood = Mood.allCases[moodIndex].rawValue
             entry.bodyText = bodyText
+            
+            entryController?.sendEntryToServer(entry: entry)
             
             do {
                 try CoreDataStack.shared.mainContext.save()

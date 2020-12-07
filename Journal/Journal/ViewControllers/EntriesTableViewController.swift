@@ -21,6 +21,8 @@ class EntriesTableViewController: UITableViewController {
 //        }
 //    }
     
+    let entryController = EntryController()
+    
     lazy var fetchedResultsController: NSFetchedResultsController<Entry> = {
         let fetchRequest: NSFetchRequest<Entry> = Entry.fetchRequest()
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: "mood", ascending: true), NSSortDescriptor(key: "timestamp", ascending: true)]
@@ -49,7 +51,14 @@ class EntriesTableViewController: UITableViewController {
         super.viewWillAppear(true)
         tableView.reloadData()
     }
-
+    @IBAction func refresh(_ sender: UIRefreshControl) {
+        entryController.fetchEntriesFromServer { (_) in
+            DispatchQueue.main.async {
+                self.refreshControl?.endRefreshing()
+            }
+        }
+    }
+    
     // MARK: - Table view data source
 
     override func numberOfSections(in tableView: UITableView) -> Int {
@@ -88,14 +97,17 @@ class EntriesTableViewController: UITableViewController {
 //            tableView.deleteRows(at: [indexPath], with: .fade)
 //            let entry = entries[indexPath.row]
             let entry = fetchedResultsController.object(at: indexPath)
-            let moc = CoreDataStack.shared.mainContext
-            moc.delete(entry)
-            do {
-                try moc.save()
-                tableView.reloadData()
-            } catch {
-                moc.reset()
-                NSLog("Error saving managed object context \(error)")
+            entryController.deleteEntryFromServer(entry) { (result) in
+                guard let _ = try? result.get() else { return }
+                let moc = CoreDataStack.shared.mainContext
+                moc.delete(entry)
+                do {
+                    try moc.save()
+//                    tableView.reloadData()
+                } catch {
+                    moc.reset()
+                    NSLog("Error saving managed object context \(error)")
+                }
             }
         }
 //        else if editingStyle == .insert {
@@ -129,6 +141,12 @@ class EntriesTableViewController: UITableViewController {
             if let detailVC = segue.destination as? EntryDetailViewController,
                let index = self.tableView.indexPathForSelectedRow {
                 detailVC.entry = fetchedResultsController.object(at: index)
+                detailVC.entryController = entryController
+            }
+        } else if segue.identifier == "CreateEntrySegue" {
+            if let navVC = segue.destination as? UINavigationController,
+               let createEntryVC = navVC.viewControllers.first as? CreateEntryViewController {
+                createEntryVC.entryController = entryController
             }
         }
     }

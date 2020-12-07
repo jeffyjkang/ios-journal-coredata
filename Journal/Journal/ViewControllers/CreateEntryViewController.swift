@@ -8,6 +8,8 @@
 import UIKit
 
 class CreateEntryViewController: UIViewController {
+    
+    var entryController: EntryController?
 
     @IBOutlet weak var entryTitleTextField: UITextField!
     @IBOutlet weak var entryBodyTextView: UITextView!
@@ -21,7 +23,8 @@ class CreateEntryViewController: UIViewController {
         let bodyText = entryBodyTextView.text
         let moodIndex = moodSegmentedControl.selectedSegmentIndex
         let mood = Mood.allCases[moodIndex]
-        Entry(title: title, bodyText: bodyText, mood: mood)
+        let entry = Entry(title: title, bodyText: bodyText, mood: mood)
+        entryController?.sendEntryToServer(entry: entry)
         do {
             try CoreDataStack.shared.mainContext.save()
             navigationController?.dismiss(animated: true, completion: nil)
@@ -36,6 +39,7 @@ class CreateEntryViewController: UIViewController {
         moodSegmentedControl.setTitle("🙂", forSegmentAt: 0)
         moodSegmentedControl.setTitle("😐", forSegmentAt: 1)
         moodSegmentedControl.setTitle("☹️", forSegmentAt: 2)
+        moodSegmentedControl.selectedSegmentIndex = 1
         entryTitleTextField.becomeFirstResponder()
     }
 
